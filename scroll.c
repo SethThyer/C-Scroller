@@ -31,32 +31,24 @@ int main (void) {
     }
 
     char savedstr[512];
+    char savedstrpos[512];
     fgets(savedstr, 512, savedfp);
+    fgets(savedstrpos, 512, savedfp);
+
+    printf("%s", savedstr);
+    printf("%s", savedstrpos);
+
+
+    if (strcmp(savedstrpos, savedstr) != 1) {
+        printf("OK");
+    }
+    // check if the input matches the saved input so it knows when to change the saved file or to continue to draw from it
+
+
 
     fclose (savedfp);
 
 
-    char *fpdef = NULL;
-    char *fpalt = NULL;
-    int setswitch = 1;
-
-    // Split the file into 2 
-    char* pch = NULL;
-
-    //printf ("%s", buf);
-
-    char spacers[] = "\n"; 
-
-    pch = strtok(savedstr, spacers);
-
-    while (pch != NULL) {
-
-        printf("%s", savedstr);
-
-        pch = strtok(NULL, spacers);
-
-    }
-    
     
 
 
