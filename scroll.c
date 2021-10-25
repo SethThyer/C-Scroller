@@ -3,6 +3,31 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+
+
+
+
+
+int WriteToSave(char buf[], int pos) {
+
+    FILE* savedfp = fopen("saved", "w");
+
+    char tmp[512];
+    for (int i=0; i < (int)strlen(buf); i++) {
+        tmp[i] = buf[i + pos];
+    }
+    printf("%s\n", tmp);
+    pos++;
+    printf("%i", pos);
+    fwrite(&tmp, strlen(tmp), 1, savedfp);  
+    fwrite(&pos, sizeof(pos), 1, savedfp);  
+
+    fclose(savedfp);
+    return 0;
+}
+
+
+
 int main (void) {
 
     int maxLength = 100;
@@ -16,8 +41,6 @@ int main (void) {
     int size = sizeof(buf);
     fgets(buf, size, stdin);
 
-    char tmp[256]={0x0};
-    char writeTo[sizeof(tmp)];
 
 
 
@@ -31,17 +54,18 @@ int main (void) {
     }
 
     char savedstr[512];
-    char savedstrpos[512];
+    char savedstrpos[512], *endp;
     fgets(savedstr, 512, savedfp);
     fgets(savedstrpos, 512, savedfp);
 
-    printf("%s", savedstr);
-    printf("%s", savedstrpos);
-
-
-    if (strcmp(savedstrpos, savedstr) != 1) {
-        printf("OK");
+    if (strcmp(buf, savedstr) == 0) {
+        printf("SAME\n");
     }
+    int pos = strtol(savedstrpos, &endp, 0);
+    printf("NUMBER= ");
+    printf("%i\n", pos);
+
+    WriteToSave(buf, pos);
     // check if the input matches the saved input so it knows when to change the saved file or to continue to draw from it
 
 
