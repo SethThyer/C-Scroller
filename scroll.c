@@ -1,121 +1,84 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>  //dis
 
-
-
-
-
-
-int WriteToSave(char buf[], int pos) {
-
-    FILE* savedfp = fopen("saved", "w");
-
-    char tmp[512];
-    for (int i=0; i < (int)strlen(buf); i++) {
-        tmp[i] = buf[i + pos];
-    }
-    printf("%s\n", tmp);
-    pos++;
-    printf("%i", pos);
-    fwrite(&tmp, strlen(tmp), 1, savedfp);  
-    fwrite(&pos, sizeof(pos), 1, savedfp);  
-
-    fclose(savedfp);
-    return 0;
-}
-
-
-
-int main (void) {
-
-    int maxLength = 100;
-    // Variables
-
-   // fseek(stdin, 0L, SEEK_END);
-   // int long length = ftell(stdin);
-   // printf("%li", length);
-
-    char buf[maxLength + 1];
-    int size = sizeof(buf);
-    fgets(buf, size, stdin);
-
-
-
-
-
-
-    FILE* savedfp = fopen("saved", "r");
+int WriteToSave(char buf[], int pos, int isnew) {
+    int maxlength = 10;
     
+    FILE* savedfp = fopen("saved", "w");
     if(savedfp == NULL) {
         printf("Save file not found\n");
         return -1;
     }
 
+    if (isnew == 1)
+        pos = 0;
+    
+    char tmp[512];
+    int offset = (int)strlen(buf) - 1 - pos;
+    
+    for (int i=0; i < offset; i++) 
+        tmp[i + pos] = buf[i];
+    
+    for (int in=0; in < pos; in++)
+        tmp[in] = buf[in + offset];
+    
+    
+    printf("|%s", tmp);
+    printf("|");
+
+    pos++;
+    if (pos >= (int)strlen(buf) - 1) 
+        pos = 0;
+    
+    char posstr[100];
+    sprintf(posstr, "%d", pos);
+    
+    // DEUBUG 
+    //printf("%s", posstr);
+    
+    fwrite(buf, strlen(buf), 1, savedfp);  
+    fwrite(&posstr, strlen(posstr), 1, savedfp);  
+    
+    fclose(savedfp);
+    return 0;
+}
+
+
+int main (void) {
+    
+    int maxLength = 100;
+    char delim[] = "||  \n";
+
+    char buf[maxLength + 1 + strlen(delim)];
+    int size = sizeof(buf);
+    fgets(buf, size, stdin); // Put input into buff
+    size_t buflen = strlen(buf);
+
+    
+    strcat(buf, delim);
+    buf[buflen - 1] = ' ';
+
+    FILE* savedfp = fopen("saved", "r");
+    if (savedfp == NULL) {
+        printf("Save file not found\n");
+        return -1;
+    }
+    
     char savedstr[512];
     char savedstrpos[512], *endp;
-    fgets(savedstr, 512, savedfp);
-    fgets(savedstrpos, 512, savedfp);
-
-    if (strcmp(buf, savedstr) == 0) {
-        printf("SAME\n");
-    }
+    fgets(savedstr, 512, savedfp);    // Line 1 of saved file into savedstr
+    fgets(savedstrpos, 512, savedfp); // Line 2 of saved file into savedpos
+    
     int pos = strtol(savedstrpos, &endp, 0);
-    printf("NUMBER= ");
-    printf("%i\n", pos);
-
-    WriteToSave(buf, pos);
-    // check if the input matches the saved input so it knows when to change the saved file or to continue to draw from it
-
-
-
+    if (strcmp(buf, savedstr) == 0) {
+        WriteToSave(buf, pos, 0);
+        fclose (savedfp);
+        return 0;
+    }
+    WriteToSave(buf, pos, 1);
     fclose (savedfp);
-
-
     
-
-
-
-
-    //printf("def: %d\n", fpdef);
-    //printf("alt: %d\n", fpalt);
-
-
-    // for (int i; i < length; i++) {
-
-    //     writeTo[i] = buf[i + 1];
-    // }
-
-    // Assign num to each char
-    //x.tochar[]
-    
-    // Read from positionfile to get scroll position
-    //z = file.num     //[z=5]
-    
-    // Create new array to hold produced value
-    //y = Array[x.length]
-    
-    //for loop x.length {
-    //  g = RelativePosition(z, i)
-    //  y[i] = x[i + g]
-    //}
-    
-    // Write to positionfile
-    //file.num = z + 1
-    //if (z + 1 > length) file.num = 0
-    
-    //void RelativePosition(h, l) {
-    //  if (h + l + 1 > x.length) {
-    //  h -= x.length
-    //  RelativePosition(h)
-    //  }
-
-    //  New cut array
-    //r = Array[length]
-    //for loop length {
-    //  r[i] = y[i]
-    //}
-
     return 0;
 }
