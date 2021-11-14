@@ -3,34 +3,55 @@
 #include <stdlib.h>
 
 int WriteToSave(char buf[], int pos, int isnew) {
-    int maxlength = 29; // Change this to your liking
+    int maxlength = 20; // Change this to your liking
+    
+    char newl = '\n';
+    FILE* savedfp = fopen("/home/seth/tmp/saved", "w");
+    if(savedfp == NULL) {
+        printf("Save file not found\n");
+        return -1;
+    }
     
     if (isnew == 1)
         pos = 0;
-
+    
     // size of buffer 
     size_t mls;
-
+    
     if ((sizeof(char) * maxlength) > strlen(buf)) {
         mls = (sizeof(char) * maxlength);
     }
     else {
         mls = strlen(buf);
     }
-
-
+    
+    
     char *altbuf = malloc(mls);
     
     for (int it=0; it < mls; it++) {
         altbuf[it] = ' ';
-
+        
         if (it < strlen(buf)) {
             altbuf[it] = buf[it];
         }
     }
     int full = strlen(altbuf);
-
-
+    
+    
+    // Don't scroll if input is smaller than available space.
+    // Delete this if statement to always scroll regardless if input size.
+    if (strlen(altbuf) <= maxlength) {
+        fwrite(buf, strlen(buf), 1, savedfp); 
+        fwrite(&newl, 1, 1, savedfp);
+        putw(pos, savedfp);
+        
+        //printf("|");
+        printf("%s",altbuf);
+        //printf("|");
+        
+        return 0;
+    }
+    
     // Scrolling happens here    
     char tmp[full * 2];
     int offset = full - pos;
@@ -51,23 +72,16 @@ int WriteToSave(char buf[], int pos, int isnew) {
     //printf("|");
     
     pos = pos + 1;
-    printf("Len:%i\n", full);
     if (pos > full) 
         pos = 0;
-
+    
     
     // DEUBUG 
-    printf("POS:%i\n", pos);
+    //printf("Len:%i\n", full);
+    //printf("POS:%i\n", pos);
     
-
+    
     // Write new position to file
-    FILE* savedfp = fopen("/home/seth/tmp/saved", "w");
-    if(savedfp == NULL) {
-        printf("Save file not found\n");
-        return -1;
-    }
-
-    char newl = '\n';
     fwrite(buf, strlen(buf), 1, savedfp); 
     fwrite(&newl, 1, 1, savedfp);
     putw(pos, savedfp);
@@ -91,8 +105,8 @@ int main (void) {
     
     strcat(buf, delim);
     buf[buflen - 1] = ' ';
-
-
+    
+    
     // Read saved position and string data from save file
     FILE* savedfp = fopen("/home/seth/tmp/saved", "r");
     if (savedfp == NULL) {
@@ -107,13 +121,13 @@ int main (void) {
     
     // If the string to be scrolled is changed then reset scroll position
     savedstr[strlen(savedstr) - 1] = '\0';
-
+    
     if (strcmp(buf, savedstr) == 0) {
         WriteToSave(buf, pos, 0);
         fclose (savedfp);
         return 0;
     }
-
+    
     WriteToSave(buf, pos, 1);
     fclose (savedfp);
     
