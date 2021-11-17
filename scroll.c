@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 int WriteToSave(char buf[], int pos, int isnew) {
-    int maxlength = 20; // Change this to your liking
+    int maxlength = 29; // Change this to your liking
     
     char newl = '\n';
     FILE* savedfp = fopen("/home/seth/tmp/saved", "w");
@@ -15,14 +15,16 @@ int WriteToSave(char buf[], int pos, int isnew) {
     if (isnew == 1)
         pos = 0;
     
+    int buflen = strlen(buf);
+    
     // size of buffer 
     size_t mls;
     
-    if ((sizeof(char) * maxlength) > strlen(buf)) {
+    if ((sizeof(char) * maxlength) > buflen) {
         mls = (sizeof(char) * maxlength);
     }
     else {
-        mls = strlen(buf);
+        mls = buflen;
     }
     
     
@@ -31,7 +33,7 @@ int WriteToSave(char buf[], int pos, int isnew) {
     for (int it=0; it < mls; it++) {
         altbuf[it] = ' ';
         
-        if (it < strlen(buf)) {
+        if (it < buflen) {
             altbuf[it] = buf[it];
         }
     }
@@ -40,8 +42,39 @@ int WriteToSave(char buf[], int pos, int isnew) {
     
     // Don't scroll if input is smaller than available space.
     // Delete this if statement to always scroll regardless if input size.
-    if (strlen(altbuf) <= maxlength) {
-        fwrite(buf, strlen(buf), 1, savedfp); 
+    if (buflen <= maxlength) {
+        
+        if (maxlength-buflen > 1) {
+            
+            int inter = (maxlength - buflen) / 2;
+            int intereven = 1;
+            
+            if (buflen % 2 == 1){
+                inter = (maxlength - buflen - 1) / 2;
+                intereven = 0;
+            }
+            
+            for (int i=0; i <= inter; i++) {
+                altbuf[i] = ' ';
+            }
+            
+            for (int it=0; it<=buflen+1; it++) {
+                altbuf[it+inter+1] = buf[it];
+            }
+            
+            if (intereven == 0) {
+                for (int in=0; in < inter+1; in++) {
+                    altbuf[in+inter+buflen+1] = ' ';
+                }
+            }
+            else {
+                for (int in=0; in < inter+1; in++) {
+                    altbuf[in+inter+buflen] = ' ';
+                }
+            }
+        }
+        
+        fwrite(buf, buflen, 1, savedfp); 
         fwrite(&newl, 1, 1, savedfp);
         putw(pos, savedfp);
         
@@ -62,7 +95,7 @@ int WriteToSave(char buf[], int pos, int isnew) {
     for (int in=0; in < pos; in++)
         tmp[in] = altbuf[in + offset];
     
-    for (int it=maxlength + 1; it < strlen(tmp); it++) {
+    for (int it=maxlength; it < strlen(tmp); it++) {
         tmp[it] = '\0';
     }
     
