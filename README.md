@@ -21,5 +21,6 @@ ect...
 <br/>
 <br/>
 #### ToDo
-[ ] Work with UTF-16 characters.
-[ ] Create a Makefile
+[ ] Work with UTF-16 characters.<br/>
+[ ] Create a Makefile<br/>
+
