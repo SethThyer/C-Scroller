@@ -20,7 +20,8 @@ ect...
 - Works with DWM-blocks
 <br/>
 <br/>
-#### ToDo<br/>
+
+### ToDo<br/>
 [ ] Work with UTF-16 characters.<br/>
 [ ] Create a Makefile<br/>
 
