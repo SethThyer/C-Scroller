@@ -18,3 +18,6 @@ ect...
 - Always maintains size by using whitespaces
 - Centers text & doesn't scroll if it fits within the scroll area
 - Works with DWM-blocks
+<br/>
+<br/>
+[ ] Work with UTF-16 characters.
