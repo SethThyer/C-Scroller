@@ -1,11 +1,15 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
-int WriteToSave(char buf[], int pos, int isnew) {
+#include <wchar.h>
+#include <string.h>
+#include <locale.h>
+
+
+int WriteToSave(wchar_t buf[], int pos, int isnew) {
     int maxlength = 29; // Change this to your liking
+    wchar_t newl = L'\n';
     
-    char newl = '\n';
     FILE* savedfp = fopen("/home/seth/tmp/saved", "w");
     if(savedfp == NULL) {
         printf("Save file not found\n");
@@ -15,29 +19,28 @@ int WriteToSave(char buf[], int pos, int isnew) {
     if (isnew == 1)
         pos = 0;
     
-    int buflen = strlen(buf);
     
     // size of buffer 
     size_t mls;
+    int buflen = wcslen(buf);
     
-    if ((sizeof(char) * maxlength) > buflen) {
-        mls = (sizeof(char) * maxlength);
+    if ((4 * maxlength) > buflen) {
+        mls = (4 * maxlength);
     }
     else {
         mls = buflen;
     }
     
+    wchar_t *altbuf = malloc(mls);
     
-    char *altbuf = malloc(mls);
-    
-    for (int it=0; it < mls; it++) {
+    for (int it=0; it < mls / 4; it++) {
         altbuf[it] = ' ';
         
         if (it < buflen) {
             altbuf[it] = buf[it];
         }
     }
-    int full = strlen(altbuf);
+    int full = wcslen(altbuf);
     
     
     // Don't scroll if input is smaller than available space.
@@ -79,14 +82,14 @@ int WriteToSave(char buf[], int pos, int isnew) {
         putw(pos, savedfp);
         
         //printf("|");
-        printf("%s",altbuf);
+        wprintf(L"%ls",altbuf);
         //printf("|");
         
         return 0;
     }
     
     // Scrolling happens here    
-    char tmp[full * 2];
+    wchar_t tmp[full * 2];
     int offset = full - pos;
     
     for (int i=0; i < full; i++) 
@@ -95,13 +98,13 @@ int WriteToSave(char buf[], int pos, int isnew) {
     for (int in=0; in < pos; in++)
         tmp[in] = altbuf[in + offset];
     
-    for (int it=maxlength; it < strlen(tmp); it++) {
+    for (int it=maxlength; it < wcslen(tmp); it++) {
         tmp[it] = '\0';
     }
     
     
-    //printf("|");
-    printf("%s\n", tmp);
+    //printf("|");  
+    wprintf(L"%ls\n", tmp);
     //printf("|");
     
     pos = pos + 1;
@@ -115,7 +118,7 @@ int WriteToSave(char buf[], int pos, int isnew) {
     
     
     // Write new position to file
-    fwrite(buf, strlen(buf), 1, savedfp); 
+    fwrite(buf, wcslen(buf), 1, savedfp); 
     fwrite(&newl, 1, 1, savedfp);
     putw(pos, savedfp);
     
@@ -126,17 +129,17 @@ int WriteToSave(char buf[], int pos, int isnew) {
 
 
 int main (void) {
-    
+    setlocale(LC_ALL, "en_US.utf16");
+
     int MAbuflen = 100;
-    char delim[] = "# ";
+    wchar_t delim[] = L"# ";
     
-    char buf[MAbuflen + 1 + strlen(delim)];
+    wchar_t buf[(MAbuflen + 1) * 4 + wcslen(delim)];
     int size = sizeof(buf);
-    fgets(buf, size, stdin); // Put input into buff
-    size_t buflen = strlen(buf);
+    fgetws(buf, size, stdin); // Put input into buff
+    size_t buflen = wcslen(buf);
     
-    
-    strcat(buf, delim);
+    wcscat(buf, delim);
     buf[buflen - 1] = ' ';
     
     
@@ -147,20 +150,24 @@ int main (void) {
         return -1;
     }
     
-    char savedstr[512];
-    fgets(savedstr, 512, savedfp);    // Line 1 of saved file into savedstr
-    int pos = getw(savedfp);          // Line 2 of saved file into savedpos
+    wchar_t savedstr[512 * 4];
+    fgetws(savedstr, 512 * 4, savedfp);
+    int pos = getw(savedfp);
     
     
     // If the string to be scrolled is changed then reset scroll position
-    savedstr[strlen(savedstr) - 1] = '\0';
-    
-    if (strcmp(buf, savedstr) == 0) {
+    //savedstr[wcslen(savedstr) - 1] = '\0';
+
+    wprintf(L"%ls\n", savedstr);
+    wprintf(L"%ls\n", buf);
+    printf("DONE\n");
+
+    if (wcscmp(buf, savedstr) == 0) {
         WriteToSave(buf, pos, 0);
         fclose (savedfp);
+        printf("DAS");
         return 0;
     }
-    
     WriteToSave(buf, pos, 1);
     fclose (savedfp);
     
